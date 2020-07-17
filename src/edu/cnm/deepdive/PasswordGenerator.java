@@ -31,9 +31,49 @@ public class PasswordGenerator {
     this.ambiguousAllowed = ambiguousAllowed;
   }
 
-  public String generate(int length){
-    return null; // TODO Implement according to spec.
+  public String generate(int length) throws IllegalArgumentException {
+
+    StringBuilder builder = new StringBuilder(length);
+    if (upperCaseRequired) {
+      builder.append(selectRestricted(UPPER_CASE));
+    }
+    if (lowerCaseRequired) {
+      builder.append(selectRestricted(LOWER_CASE));
+    }
+    if (digitsRequired) {
+      builder.append(selectRestricted(DIGITS));
+    }
+    if (punctuationRequired) {
+      builder.append(PUNCTUATION.charAt(rng.nextInt(PUNCTUATION.length())));
+    }
+    if (length < builder.length()) {
+      throw new IllegalArgumentException(
+          "Specified length is insufficient for password requirements");
+    }
+    for (int i = builder.length(); i < length; i++) {
+      builder.append(pool[rng.nextInt(pool.length)]);
+    }
+    char[] chars = builder.toString().toCharArray();
+    for (int i = chars.length - 1; i > 0; i--) {
+      int position = rng.nextInt(i + 1);
+      if (position != i) {
+        char temp = chars[i];
+        chars[i] = chars[position];
+        chars[position] = temp;
+      }
+    }
+    return new String(chars);
   }
+
+  private String selectRestricted(String pool) {
+    String selected;
+    do {
+      int position = rng.nextInt(pool.length());
+      selected = pool.substring(position, position + 1);
+    } while (!ambiguousAllowed && selected.matches(AMBIGUOUS));
+    return selected;
+  }
+
 
   public static class Builder {
 
